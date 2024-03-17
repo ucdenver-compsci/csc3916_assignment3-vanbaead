@@ -86,6 +86,105 @@ router.post('/signin', function (req, res) {
     })
 });
 
+router.route('/movies')
+    .get((req, res) => {
+        //Fetch all movies from the database
+        Movie.find()
+            .then(movies => {
+                res.json(movies);
+            })
+            .catch(err => {
+                console.error('Error fetching movies:', err);
+                res.status(500).json({ error: 'Internal server error' });
+            });
+    })
+    //Route to create a new movie or return all movies
+    .post((req, res) => {
+        //Extract movie data from the request body
+        const { title, releaseDate, genre, actors } = req.body;
+
+        //Create a new movie document
+        const newMovie = new Movie({
+            title,
+            releaseDate,
+            genre,
+            actors
+        });
+
+        //Save the new movie to the database
+        newMovie.save()
+            .then(() => {
+                //After saving the new movie, fetch all movies from the database
+                return Movie.find();
+            })
+            .then(movies => {
+                res.json(movies); //Respond with all movies
+            })
+            .catch(err => {
+                console.error('Error creating movie:', err);
+                res.status(500).json({ error: 'Internal server error' });
+            });
+    })
+    .all((req, res) => {
+        // Any other HTTP Method
+        // Returns a message stating that the HTTP method is unsupported.
+        res.status(405).send({ message: 'HTTP method not supported.' });
+    });
+
+router.route('/movies/:title')
+    .get((req, res) => {
+        const title = req.params.title;
+
+        Movie.findOne({ title })
+            .then(movie => {
+                if (!movie) {
+                    return res.status(404).json({ error: 'Movie not found' });
+                }
+                res.json(movie);
+            })
+            .catch(err => {
+                console.error('Error fetching movie:', err);
+                res.status(500).json({ error: 'Internal server error' });
+            });
+    })
+    .put((req, res) => {
+        const title = req.params.title;
+        const { releaseDate, genre, actors } = req.body;
+    
+        Movie.findOneAndUpdate({ title }, { releaseDate, genre, actors }, { new: true })
+            .then(movie => {
+                if (!movie) {
+                    return res.status(404).json({ error: 'Movie not found' });
+                }
+                res.json(movie);
+            })
+            .catch(err => {
+                console.error('Error updating movie:', err);
+                res.status(500).json({ error: 'Internal server error' });
+            });
+    })
+    .delete((req, res) => {
+        const title = req.params.title;
+    
+        Movie.findOneAndDelete({ title })
+            .then(movie => {
+                if (!movie) {
+                    return res.status(404).json({ error: 'Movie not found' });
+                }
+                res.json({ message: 'Movie deleted successfully' });
+            })
+            .catch(err => {
+                console.error('Error deleting movie:', err);
+                res.status(500).json({ error: 'Internal server error' });
+            });
+    })
+    .all((req, res) => {
+        // Any other HTTP Method
+        // Returns a message stating that the HTTP method is unsupported.
+        res.status(405).send({ message: 'HTTP method not supported.' });
+    });
+    
+
 app.use('/', router);
 app.listen(process.env.PORT || 8080);
 module.exports = app; // for testing only
