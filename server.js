@@ -87,7 +87,7 @@ router.post('/signin', function (req, res) {
 });
 
 router.route('/movies')
-    .get((req, res) => {
+    .get(authJwtController.isAuthenticated, (req, res) => {
         //Fetch all movies from the database
         Movie.find()
             .then(movies => {
@@ -132,7 +132,7 @@ router.route('/movies')
     });
 
 router.route('/movies/:title')
-    .get((req, res) => {
+    .get(authJwtController.isAuthenticated, (req, res) => {
         const title = req.params.title;
 
         Movie.findOne({ title })
@@ -147,7 +147,7 @@ router.route('/movies/:title')
                 res.status(500).json({ error: 'Internal server error' });
             });
     })
-    .put((req, res) => {
+    .put(authJwtController.isAuthenticated, (req, res) => {
         const title = req.params.title;
         const { releaseDate, genre, actors } = req.body;
     
@@ -163,7 +163,7 @@ router.route('/movies/:title')
                 res.status(500).json({ error: 'Internal server error' });
             });
     })
-    .delete((req, res) => {
+    .delete(authJwtController.isAuthenticated, (req, res) => {
         const title = req.params.title;
     
         Movie.findOneAndDelete({ title })
