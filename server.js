@@ -99,7 +99,7 @@ router.route('/movies')
             });
     })
     //Route to create a new movie or return all movies
-    .post((req, res) => {
+    .post(authJwtController.isAuthenticated, (req, res) => {
         //Extract movie data from the request body
         const { title, releaseDate, genre, actors } = req.body;
 
